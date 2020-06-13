@@ -1,0 +1,85 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+firsts <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-09/firsts.csv')
+```
+
+```{r}
+firsts_1 <- firsts %>%
+  mutate(decade = year - year %%10) %>%
+  group_by(decade) %>% 
+  arrange(category) %>% 
+  mutate(index = row_number()) %>%
+  ungroup() 
+```
+
+```{r fig.height=10 , fig.width=15}
+p1 <- firsts_1 %>% 
+  ggplot(aes(x=decade, y = 1, group = index, fill = category))+
+  geom_bar(stat = "identity",
+           width = 8,
+           color = "black",
+           size = .1)+
+  coord_polar()+
+  scale_x_continuous(name = "",
+                     breaks = seq(1730, 2010, by = 10),
+                     minor_breaks =  seq(1730, 2010, by = 10),
+                     labels = paste0(seq(1730, 2010, by = 10), "s"))+
+                     #expand = c(0,1)) +
+  scale_y_continuous(expand = c(0,5))+
+  scale_fill_viridis_d(option = "C",
+    guide = guide_legend(#direction = "horizontal", 
+                         nrow = 1,
+                         label.position = "right",
+                         #title.theme = element_blank(),
+                         label.theme = element_text(color = "white")
+                         ))+
+  theme(
+    aspect.ratio=1/2.2,
+    plot.margin=unit(c(1,1,0,1), "cm"),
+    panel.grid.minor = element_line(color = "#f7ff00",
+                                   linetype = 2,
+                                  size = .05
+                                 ),
+    strip.switch.pad.grid	= unit(1, "cm"),
+    panel.grid.major = element_blank(),
+    plot.title       = element_text(color = "#f7ff00", 
+                                    #hjust = 0, 
+                                    size = 25,
+                                    face = "bold"),
+    panel.background = element_rect(fill = "#000000"),
+    plot.background  = element_rect(fill = "#000000"),
+    legend.key.size = unit(.18, "cm"),
+    legend.key.width = unit(1,"cm"),
+    legend.position = c(0.4, 0),
+    #legend.justification = c(1, 1),
+    legend.text = element_text(size = 5),
+    legend.background = element_rect(fill = "transparent"),
+    legend.box.background = element_rect(fill = "transparent",
+                                         color = "transparent"),
+    axis.ticks       = element_blank(),
+    axis.text.x = element_text(color = "white",
+                               size = 15,
+                              face = "bold",
+                              vjust = 1),
+    axis.text.y      = element_blank())+
+    labs(title = "Firsts Achievements by African-Americans") 
+
+p1
+```
+
+```{r}
+ggsave("Achievements_final.png", p1, height = 21, width = 30, units = "cm", dpi = 300)
+```
+
