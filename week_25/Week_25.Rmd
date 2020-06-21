@@ -1,0 +1,83 @@
+---
+title: "Week 25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(d3Network)
+```
+ 
+
+```{r}
+slave_routes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-16/slave_routes.csv')
+```
+
+# Orign of the slaves that arrived in Bahia
+```{r}
+orign_dest <- slave_routes %>% 
+  filter(str_detect(port_origin, pattern = "Bahia")) %>% 
+  drop_na() %>% 
+  group_by(port_origin, place_of_purchase) %>% 
+  summarise(total_slaves = sum(n_slaves_arrived)) %>% 
+  ungroup() %>% 
+  arrange(desc(total_slaves)) %>% 
+  filter(!str_detect(place_of_purchase, "unspec")) %>%
+  select(
+         source = place_of_purchase, # %>% 
+        value = total_slaves) %>% 
+  mutate(target = "Bahia")
+```
+
+
+```{r}
+source_nodes <- unique(orign_dest$source)
+target_nodes <- unique(orign_dest$target)
+
+nodes <- c(source_nodes, target_nodes)
+
+nodes <- data.frame(nodes)
+
+nodes <- nodes %>%
+  mutate(names = as.character(nodes)) %>% 
+  #select(names = nodes) %>% 
+  mutate(n = as.numeric(nodes)) %>% 
+  arrange(nodes)
+```
+
+
+```{r}
+# or deframe
+# vector_rename <- set_names(as.character(nodes$n), nodes$nodes)
+# orign_dest$source <- recode(orign_dest$source, !!!vector_rename) test
+
+# orign_dest <- orign_dest %>%
+#   mutate(source = as.numeric(recode(source, !!!vector_rename)),
+#          target = as.numeric(recode(target, !!!vector_rename))) %>%
+#   select(source, target, value)
+
+
+# Notes: A melhor explicação de como configurar o IDNodes e o IDTarget foi neste [vídeo](https://www.youtube.com/watch?v=204-aB9upew&t=227s), embora ainda eu não compreenda a lógica por detrás desses cálculos. O algorítmo deve iniciar em 0.
+
+orign_dest <- as.data.frame(orign_dest)
+
+orign_dest$IDsource = match(orign_dest$source, nodes$nodes) - 1
+orign_dest$IDtarget = match(orign_dest$target, nodes$nodes) - 1
+```
+
+
+```{r}
+d3Network::d3Sankey(Links = orign_dest, Nodes = nodes, 
+                    Source = "IDsource",
+                    Target = "IDtarget", 
+                    Value = "value", 
+                    NodeID = "nodes", 
+                    fontsize = 12, 
+                    nodeWidth =20, 
+                    file = "~/Sankey.html")
+```
+
