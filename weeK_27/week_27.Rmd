@@ -1,0 +1,78 @@
+---
+title: "week_27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+```
+
+```{r}
+dt <- tt_load(2020, week = 27)
+```
+
+```{r}
+dt1 <- dt$comic_bechdel
+```
+
+How many titles each writer have writen?
+```{r}
+plot <- dt1 %>%
+  mutate(writer = str_trim(str_remove(writer, "\\*"), side= "both"),
+         writer = as.factor(writer)) %>% 
+  count(writer) %>% 
+  arrange(desc(n)) %>% 
+  drop_na() %>% 
+  mutate(label.1 = ifelse(n > 2, n, NA),
+         label.2 = ifelse(n <= 2, n, NA)) %>% 
+  ggplot(aes(x = fct_reorder(writer, n ), y = n )) + 
+  geom_col( color = "red", fill = "yellow", alpha = .4)+
+  coord_flip()+
+  geom_label(aes(x = writer, y = n, label = label.1),
+             hjust = 1, 
+             vjust = 0.5, 
+             colour = "white", 
+             fill = NA, 
+             label.size = NA, 
+             family="Helvetica", 
+             size = 5)+
+    geom_label(aes(x = writer, y = n, label = label.2),
+             hjust = 0, 
+             vjust = 0.5, 
+             colour = "white", 
+             fill = NA, 
+             label.size = NA, 
+             family="Helvetica", 
+             size = 5)
+  theme_minimal()
+
+```
+
+
+```{r}
+plot +
+  labs(title = "X-men Writers", x = "Writers", y = "# of titles") +
+  theme(panel.background = element_rect(fill = "black", color = "black"),
+        plot.background = element_rect(fill = "black"),
+        axis.text.y = element_text(face = "bold", 
+                                   size=12,
+                                   color = "white"),
+        axis.text = element_text(face = "bold", 
+                                   size=12,
+                                   color = "white"),
+        axis.title.x=element_text(face = "bold", 
+                                   size=12,
+                                   color = "white"),
+        title= element_text(face = "bold", 
+                                   size=14,
+                                   color = "white"),
+        panel.grid.major= element_line(linetype="dashed"),
+        panel.grid.minor=element_blank()
+        )
+```
