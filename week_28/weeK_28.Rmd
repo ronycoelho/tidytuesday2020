@@ -1,0 +1,47 @@
+---
+title: "week_28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(tidytuesdayR)
+library(paletteer)
+```
+
+```{r}
+dt <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv')
+```
+
+```{r}
+coffee <- ggplot(filter(dt, flavor > 5, flavor > 5), 
+              aes(flavor, aroma))+
+  geom_jitter(aes(size = total_cup_points,
+                  shape = species),
+              #shape = 21,
+              alpha = 0.3,
+              color = "coral4")+
+  scale_size_continuous("Points")+
+  scale_shape("Species")+
+  theme_classic(base_size=20)+
+  theme(
+    axis.line= element_line(color = "#583B2BFF"),
+    axis.text= element_text(color = "#583B2BFF",
+                            size = 20),
+    panel.background= element_rect(fill = "#BBA78CFF"),
+    plot.background = element_rect(fill = "#AD8152FF", 
+                                   color = "#583B2BFF"),
+    legend.background= element_rect("transparent"),
+    title = element_text(color = "chocolate4")
+  ) +
+  labs(title = "Points by Flavor and Aroma's coffees",
+       caption = "#Tidytuesday project - Week 28")
+```
+
+```{r}
+ggsave("C:/r_files/github/mytidytuesday/tidytuesday/week_28/coffee.png", width=30, height = 15, units="cm")
+```
