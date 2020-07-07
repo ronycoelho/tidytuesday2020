@@ -3,8 +3,11 @@
 
 
 ## week 24
-![](/tidytuesday/README_files/Achievements_final.png)
+![](https://github.com/ronycoelho/tidytuesday/blob/master/week_24/Achievements_final.png)
 
 
 ## week 27
-![](![](/tidytuesday/README_files/week_27.png))
+![](https://github.com/ronycoelho/tidytuesday/blob/master/weeK_27/week_27.png)
+
+## week 28
+![](https://github.com/ronycoelho/tidytuesday/blob/master/week_28/coffee.png)
