@@ -7,7 +7,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 ```{r}
 library(tidytuesdayR)
 library(tidyverse)
@@ -56,7 +55,7 @@ plot <- dt1 %>%
 
 
 ```{r}
-plot +
+plot <- plot +
   labs(title = "X-men Writers", x = "Writers", y = "# of titles") +
   theme(panel.background = element_rect(fill = "black", color = "black"),
         plot.background = element_rect(fill = "black"),
@@ -76,3 +75,8 @@ plot +
         panel.grid.minor=element_blank()
         )
 ```
+
+```{r}
+ggsave("week_27/week_27.png", plot, width = 20, height = 10, units = "cm")
+```
+

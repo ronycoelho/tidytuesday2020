@@ -37,7 +37,8 @@ p1 <- firsts_1 %>%
                      minor_breaks =  seq(1730, 2010, by = 10),
                      labels = paste0(seq(1730, 2010, by = 10), "s"))+
                      #expand = c(0,1)) +
-  scale_y_continuous(expand = c(0,5))+
+  scale_y_continuous(limits = c(1, 65), expand = c(0,5))+
+  scale_size_binned_area(max_size = 10)+
   scale_fill_viridis_d(option = "C",
     guide = guide_legend(#direction = "horizontal", 
                          nrow = 1,
@@ -47,23 +48,24 @@ p1 <- firsts_1 %>%
                          ))+
   theme(
     aspect.ratio=1/2.2,
-    plot.margin=unit(c(1,1,0,1), "cm"),
+    plot.margin=unit(c(1,1,1,1), "cm"),
     panel.grid.minor = element_line(color = "#f7ff00",
-                                   linetype = 2,
-                                  size = .05
-                                 ),
+                                    linetype = 2,
+                                    size = .05),
     strip.switch.pad.grid	= unit(1, "cm"),
     panel.grid.major = element_blank(),
     plot.title       = element_text(color = "#f7ff00", 
                                     #hjust = 0, 
                                     size = 25,
                                     face = "bold"),
+    plot.caption = element_text(color = "white"),
     panel.background = element_rect(fill = "#000000"),
-    plot.background  = element_rect(fill = "#000000"),
+    plot.background  = element_rect(fill = "#000000", 
+                                    color = "white"),
     legend.key.size = unit(.18, "cm"),
     legend.key.width = unit(1,"cm"),
-    legend.position = c(0.4, 0),
-    #legend.justification = c(1, 1),
+    legend.position = c(0.5, 0),
+  # legend.justification = c(0, 1),
     legend.text = element_text(size = 5),
     legend.background = element_rect(fill = "transparent"),
     legend.box.background = element_rect(fill = "transparent",
@@ -71,15 +73,15 @@ p1 <- firsts_1 %>%
     axis.ticks       = element_blank(),
     axis.text.x = element_text(color = "white",
                                size = 15,
-                              face = "bold",
-                              vjust = 1),
+                                face = "bold"),
     axis.text.y      = element_blank())+
-    labs(title = "Firsts Achievements by African-Americans") 
+    labs(title = "Firsts Achievements by African-Americans",
+         caption = "#TidyTuesday Project") 
 
 p1
 ```
 
 ```{r}
-ggsave("Achievements_final.png", p1, height = 21, width = 30, units = "cm", dpi = 300)
+ggsave("C:/r_files/github/mytidytuesday/tidytuesday/week_24/Achievements_final_.png", p1, height = 21, width = 30, units = "cm", dpi = 300)
 ```
 
