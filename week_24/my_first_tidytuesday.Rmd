@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
+Inspired by [ysamano](https://github.com/ysamano/TidyTuesday/blob/master/2020/week_24/African-American.R)
+
 ```{r}
 firsts <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-09/firsts.csv')
 ```
