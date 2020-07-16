@@ -1,0 +1,81 @@
+---
+title: "Week_29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+library(mdthemes)
+library(paletteer)
+library(patchwork)
+
+theme_set(mdthemes::md_theme_modern_rc())
+```
+
+```{r}
+dt <- tidytuesdayR::tt_load(2020, week = 29)
+
+dt <- dt[[1]]
+```
+
+
+```{r}
+plot.1 <- dt %>% 
+  group_by(nationality, year_of_mission) %>% 
+  summarise(total_missions = sum(total_number_of_missions)) %>% 
+  ungroup() %>% 
+  mutate(nationality = fct_lump(nationality, 5)) %>% 
+  arrange(year_of_mission, total_missions) %>% 
+  ggplot(aes(year_of_mission, total_missions))+
+  geom_area(aes(fill = nationality), 
+            position = "dodge", alpha = 0.4)+
+  scale_fill_paletteer_d("ggsci::lanonc_lancet", dynamic = F)+
+  geom_smooth()+
+  theme(legend.position = "bottom",
+        legend.key.width =  unit(1, "cm"),
+        legend.direction = "horizontal",
+        legend.title = element_blank()
+        ) +
+  guides(fill = guide_legend(nrow = 1))+
+  labs(title = "Top 5 \\# of Missions per year and nationality",
+       x = "year", y = "\\# of Missions")
+```
+
+```{r}
+plot.2 <- dt %>%
+  group_by(nationality, year_of_mission) %>%
+  summarise(eva = sum (eva_hrs_mission)) %>% 
+  ungroup() %>% 
+  mutate(nationality = fct_lump(nationality, 5)) %>% 
+  arrange(desc(eva))%>% 
+  ggplot(aes(year_of_mission, eva))+
+  geom_area(aes(fill = nationality), 
+            position = "dodge", alpha = 0.4)+
+  scale_y_continuous(breaks = (c(0, 50, 100, 150, 200, 250)))+
+  scale_fill_paletteer_d("ggsci::lanonc_lancet", dynamic = F)+
+  geom_smooth()+
+  theme(legend.position = "bottom",
+        legend.key.width =  unit(1, "cm"),
+        legend.direction = "horizontal",
+        legend.title = element_blank()
+        ) +
+  guides(fill = guide_legend(nrow = 1))+
+  labs(title = "Top 5 EVA per year and nationality",
+       x = "year", y = "EVA - hours")
+```
+
+```{r}
+combined <- plot.1 + plot.2 & theme(legend.position = "bottom")
+combined <- combined + plot_layout(guides = "collect")
+```
+
+```{r}
+ggsave(combined, filename = "C:/r_files/github/mytidytuesday/tidytuesday/week_29/week_29.png", 
+       width = 30, height = 15, units = "cm", device = "png")
+```
+
