@@ -1,0 +1,63 @@
+---
+title: "Australian Pets_week 30"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+library(mdthemes)
+theme_set(theme_light())
+```
+
+```{r}
+df <- tidytuesdayR::tt_load(2020, week = 30)[[1]]
+```
+
+```{r}
+df %>% glimpse()
+
+df.1 <- df %>% 
+  pivot_longer(cols= ACT:WA, names_to="region", values_to = "values")%>%
+  select(year, animal_type, outcome, region, values, Total) %>% 
+  mutate(year = as.numeric(year))
+```
+
+```{r}
+df.1 %>% 
+  add_count(animal_type, outcome, region, wt = values, sort = T, name = "count") %>% 
+  mutate(outcome = fct_reorder(outcome, count, .desc=T),
+         region = fct_reorder(region, count, .desc=T),
+         animal_type = fct_reorder(animal_type, Total, .desc = T)) %>% 
+  ggplot(aes(x = animal_type , y = values, 
+             fill = animal_type, 
+             color = animal_type)) +
+  geom_col()+
+  scale_y_continuous(labels = scales::comma_format())+
+  paletteer::scale_fill_paletteer_d("yarrr::southpark")+
+  paletteer::scale_color_paletteer_d("yarrr::southpark")+
+  facet_grid(cols = vars(outcome), rows= vars(region))+
+  md_theme_wsj(color = "blue")+
+  theme(legend.background = element_rect(),
+        legend.position = "bottom",
+        axis.text.y.left= element_text(size=8),
+        axis.text.x= element_blank(),
+        legend.direction = "horizontal", legend.box = "horizontal")+
+  guides(fill = guide_legend(title="",
+                              nrow = 1, 
+                             label.position= "top",
+                             keywidth = unit(2, "cm"),
+                             keyheight = unit(.25, "cm")
+                            ),
+         color = "none")+
+  labs(title= "Australian Pets",
+      subtitle= "By outcome and region",
+      caption= "#Tidytuesday - Week 30")+
+  xlab("") + ylab("")
+```
