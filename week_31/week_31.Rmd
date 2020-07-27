@@ -1,0 +1,56 @@
+---
+title: "Pinguins_week_31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+library(ggforce)
+library(mdthemes)
+library(paletteer)
+
+path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_31"
+```
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2020, week = 31)
+```
+
+```{r}
+df.1 <- tuesdata[[1]]
+```
+
+```{r}
+plot <- df.1 %>% 
+  drop_na() %>% 
+  ggplot(aes(body_mass_g, bill_length_mm))+
+  geom_mark_ellipse(aes(color = species, label = species), 
+                    show.legend = F) +
+  geom_point(aes(fill = sex,
+                 size = bill_depth_mm
+                 ),
+             shape = 21,
+             color = "black",
+             alpha = .5,
+             show.legend = T)+
+  scale_fill_discrete("Sex: ", label = c("female", "male") 
+                      )+
+  scale_size("Bill depth: ", range = c(0, 10))+
+  mdthemes::md_theme_fivethirtyeight(base_size = 18)+
+  guides(color = "none",
+         fill = guide_legend(override.aes = list(size = 5)))+
+  labs(title = "Palmer Penguins",
+       subtitle = "Species, Sex, Body Mass, Bill length and Bill depth",
+       caption = "TidyTuesday Project - Week 31")+
+  xlab("Body Mass") + ylab("Bill length")
+```
+
+```{r}
+ggsave("week_31.png", plot=plot, path = path,width = 30, height = 20, unit = "cm")
+```
+

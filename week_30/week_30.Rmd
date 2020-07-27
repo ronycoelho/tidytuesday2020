@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidytuesdayR)
 library(tidyverse)
 library(mdthemes)
+library(paletteer)
 theme_set(theme_light())
 ```
 
@@ -30,7 +31,7 @@ df.1 <- df %>%
 ```
 
 ```{r}
-df.1 %>% 
+plot <- df.1 %>% 
   add_count(animal_type, outcome, region, wt = values, sort = T, name = "count") %>% 
   mutate(outcome = fct_reorder(outcome, count, .desc=T),
          region = fct_reorder(region, count, .desc=T),
@@ -60,4 +61,12 @@ df.1 %>%
       subtitle= "By outcome and region",
       caption= "#Tidytuesday - Week 30")+
   xlab("") + ylab("")
+```
+
+```{r}
+path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_30"
+
+ggsave(path = path, filename = "week_30.png", plot = plot, width = 25, height = 20,
+       units = "cm"
+      )
 ```

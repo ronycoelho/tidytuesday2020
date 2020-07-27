@@ -1,0 +1,46 @@
+---
+title: "Tidytuesday_generic"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+library(mdthemes)
+library(paletteer)
+```
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2020, week = 26)
+```
+
+```{r}
+df.1 <- tuesdata[[1]]
+df.2 <- tuesdata[[2]]
+```
+
+```{r}
+df <- df.1 %>% 
+  left_join(df.2, by = "animal_id")
+
+death_cause <- df %>% 
+  count(death_cause) %>% pull(death_cause)
+```
+
+```{r}
+df %>%
+  mutate(death_cause.1 = case_when(
+    str_detect(death_cause, "Accident") ~ "Accidental",
+    str_detect(death_cause, "Unkn") ~ "Unknown",
+    str_detect(death_cause, "Predati") ~ "Predation",
+    str_detect(death_cause, "Collar") ~ "Collar still in Field",
+    str_detect(death_cause, "ollision") ~ "Collision",
+    TRUE ~ death_cause)) %>% 
+    replace_na(death_cause.1, "Not registred") %>% 
+    count(death_cause.1)
+```
+
