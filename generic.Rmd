@@ -14,13 +14,18 @@ library(tidyverse)
 library(mdthemes)
 library(paletteer)
 
+options(scipen = 999)
+theme_set(theme_light())
+
 path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_31"
 ```
 
 ```{r}
-tuesdata <- tidytuesdayR::tt_load(2020, week = 31)
+
 ```
 
 ```{r}
-df.1 <- tuesdata[[1]]
+df.1
+
+
 ```
