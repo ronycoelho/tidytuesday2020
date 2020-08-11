@@ -13,187 +13,56 @@ library(tidyverse)
 #library(ggforce)
 library(mdthemes)
 library(paletteer)
-library(patchwork)
 
 options(scipen = 999)
+
 theme_set(theme_light())
+
 
 path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_32"
 ```
 
 ```{r}
 tuesdata <- tidytuesdayR::tt_load(2020, week = 32)
+```
+
+```{r}
 df.1 <- tuesdata[[1]]
+#df.2 <- tuesdata[[2]]
 
-df.1 <- df.1 %>% 
-  janitor::clean_names()
-
-t_colors <- unique(df.1$type)
-color_d <- paletteer_d("ggthemes::calc")[c(11, 2, 6, 1, 9, 3, 4, 5)]
-
-names(color_d) <- t_colors
+df.1 <- df.1 %>%
+  janitor::clean_names() 
 ```
 
 ```{r}
-plot.1 <- df.1 %>% 
-  filter(level == "Level 1") %>% 
+df.1 %>%
   pivot_longer(cols = x2016:x2018, 
                names_to = "year", 
                values_to = "values") %>% 
+  mutate(year = as.numeric(str_remove(year, "x"))) %>% 
+  filter(year == 2016) %>% 
   drop_na() %>% 
-  group_by(country_name) %>% 
-  mutate(total_c = sum(values)) %>% 
-  ungroup() %>% 
-  mutate(rank = dense_rank(desc(total_c)),
-         country_name = fct_reorder(country_name,rank),
-         year = str_remove(year, "x"),
-         year = as.numeric(year)) %>%
-  group_by(type) %>% 
-  mutate(total_t = sum(values),
-         type = fct_reorder(type, total_t)) %>% 
-  ungroup() %>% 
-  filter(rank <= 15,
-    year == 2016) %>% 
-  ggplot(aes(x= type, y = values, fill = type))+
-  geom_col()+
-  coord_polar(theta = "y")+
-  scale_y_continuous(limits = c(0, 50000))+
-  scale_fill_manual(values = color_d)+
-  facet_wrap(vars(country_name), ncol = 5, 
-             strip.position = "left")+
-  ylab("")+ xlab("European energy in 2016")+
-  theme_light()+
+  add_count(type, wt = values, name = "total_type") %>%
+  add_count(country_name, wt = values) %>% 
+  mutate(type = fct_reorder(type, total_type),
+         country_name = fct_lump(country_name, 15),
+         country_name = fct_reorder(country_name, n, .desc = T)) %>% 
+  top_n(n = 10, wt = n) %>% 
+  ggplot(aes(x = type, y = values, fill = type),
+         show.legend = FALSE)+
+  geom_col(width = .5)+
+  ylim(c(0, 150000))+
+  scale_fill_viridis_d(option = "A", 
+                       direction = -1)+
+  coord_polar(theta = "y", clip = "off") +
+  # geom_text(aes(label = type),
+  #           hjust = 2,
+  #           vjust = .5)+
+  theme_void()+
   theme(aspect.ratio = 1/2,
-        plot.background = element_rect(fill = "#39CCCC", color = "white"),
-        axis.text.y = element_blank(),
-        axis.text.x = element_text(face = "bold"),
-        axis.title.y = element_text(face = "bold", 
-                                    size = 18,
-                                    color = "white"),
         legend.position = "bottom",
-        legend.background = element_rect(fill ="transparent", color = "transparent"),
-        legend.box.background = element_rect(fill ="transparent", color = "transparent"),
-        panel.background = element_rect(fill= "#d5f4f4" ),
-        strip.background = element_rect(fill = "transparent", color = "transparent"))+
-  guides(fill = guide_legend(title="Type of energy production: ",
-                            nrow = 1, 
-                             reverse = T,
-                            title.position = "top",
-                             label.position= "top",
-                             keywidth = unit(3, "cm"),
-                             keyheight = unit(.25, "cm")))
-```
-
-```{r}
-plot.2 <- df.1 %>% 
-  filter(level == "Level 1") %>% 
-  pivot_longer(cols = x2016:x2018, 
-               names_to = "year", 
-               values_to = "values") %>% 
-  drop_na() %>% 
-  group_by(country_name) %>% 
-  mutate(total_c = sum(values)) %>% 
-  ungroup() %>% 
-  mutate(rank = dense_rank(desc(total_c)),
-         country_name = fct_reorder(country_name,rank),
-         year = str_remove(year, "x"),
-         year = as.numeric(year)) %>%
-  group_by(type) %>% 
-  mutate(total_t = sum(values),
-         type = fct_reorder(type, total_t)) %>% 
-  ungroup() %>% 
-  filter(rank <= 15,
-    year == 2017) %>% 
-  ggplot(aes(x= type, y = values, fill = type))+
-  geom_col()+
-  coord_polar(theta = "y")+
-  scale_y_continuous(limits = c(0, 50000))+
-  scale_fill_manual(values = color_d)+
-  facet_wrap(vars(country_name), ncol = 5, 
-             strip.position = "left")+
-  ylab("")+ xlab("European energy in 2017")+
-  theme_light()+
-  theme(aspect.ratio = 1/2,
-        plot.background = element_rect(fill = "#39CCCC", color = "white"),
-        axis.text.y = element_blank(),
-        axis.text.x = element_text(face = "bold"),
-        axis.title.y = element_text(face = "bold", 
-                                    size = 18,
-                                    color = "white"),
-        legend.position = "bottom",
-        legend.background = element_rect(fill ="transparent", color = "transparent"),
-        legend.box.background = element_rect(fill ="transparent", color = "transparent"),
-        panel.background = element_rect(fill= "#d5f4f4" ),
-        strip.background = element_rect(fill = "transparent", color = "transparent"))+
-  guides(fill = guide_legend(title="Type of energy production: ",
-                            nrow = 1, 
-                             reverse = T,
-                            title.position = "top",
-                             label.position= "top",
-                             keywidth = unit(3, "cm"),
-                             keyheight = unit(.25, "cm")))
-```
-
-```{r}
-plot.3 <- df.1 %>% 
-  filter(level == "Level 1") %>% 
-  pivot_longer(cols = x2016:x2018, 
-               names_to = "year", 
-               values_to = "values") %>% 
-  drop_na() %>% 
-  group_by(country_name) %>% 
-  mutate(total_c = sum(values)) %>% 
-  ungroup() %>% 
-  mutate(rank = dense_rank(desc(total_c)),
-         country_name = fct_reorder(country_name,rank),
-         year = str_remove(year, "x"),
-         year = as.numeric(year)) %>%
-  group_by(type) %>% 
-  mutate(total_t = sum(values),
-         type = fct_reorder(type, total_t)) %>% 
-  ungroup() %>% 
-  filter(rank <= 15,
-    year == 2018) %>% 
-  ggplot(aes(x= type, y = values, fill = type))+
-  geom_col()+
-  coord_polar(theta = "y")+
-  scale_y_continuous(limits = c(0, 50000))+
-  scale_fill_manual(values = color_d)+
-  facet_wrap(vars(country_name), ncol = 5, 
-             strip.position = "left")+
-  ylab("Energy in GWh")+ xlab("European energy in 2018")+
-  theme_light()+
-  theme(aspect.ratio = 1/2,
-        title = element_text(color = "white", face = "bold"),
-        plot.background = element_rect(fill = "#39CCCC", color = "white"),
-        axis.text.y = element_blank(),
-        axis.text.x = element_text(face = "bold"),
-        axis.title.y = element_text(face = "bold", 
-                                    size = 18,
-                                    color = "white"),
-        legend.text = element_text(color = "white"),
-        legend.position = "bottom",
-        legend.background = element_rect(fill ="transparent", color = "transparent"),
-        legend.box.background = element_rect(fill ="transparent", color = "transparent"),
-        panel.background = element_rect(fill= "#d5f4f4" ),
-        strip.background = element_rect(fill = "transparent", color = "transparent"))+
-  guides(fill = guide_legend(title="Type of energy production: ",
-                            nrow = 1, 
-                             reverse = T,
-                            title.position = "top",
-                             label.position= "top",
-                             keywidth = unit(3, "cm"),
-                             keyheight = unit(.25, "cm")))
-```
-
-```{r}
-p1 <- plot.1 + theme(legend.position="none")
-p2 <- plot.2 + theme(legend.position="none")
-
-combined <- p1/p2/plot.3
-```
-
-```{r}
-ggsave(path = path, filename = "week_32.png", plot = combined, width = 30, height = 30, units = "cm")
+        legend.direction = "horizontal", 
+        legend.box = "horizontal")+
+  facet_wrap(vars(country_name))
 ```
 

@@ -1,0 +1,92 @@
+---
+title: "Tidytuesday_generic"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+library(ggwordcloud)
+library(tidytext)
+library(gganimate)
+
+#options(scipen = 999)
+theme_set(theme_void())
+
+path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_33"
+```
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2020, week = 33)
+
+df.1 <- tuesdata$avatar
+
+#glimpse(df.1)
+```
+
+
+```{r}
+df.1 <- tuesdata$avatar
+
+df.1 <- df.1 %>% 
+  filter(character != "Scene Description") %>% 
+  mutate(character = fct_lump(character, 10),
+         character = as.character(character)) %>% 
+  filter(character != "Other") %>%
+  add_count(character, name = "n_char") %>% 
+  mutate(character = fct_reorder(character, n_char, .desc = T)) %>% 
+  select(character, character_words)
+
+df.1 <- df.1 %>% 
+  unnest_tokens(word, character_words) %>% 
+  anti_join(stop_words) 
+
+df.1 <- df.1 %>% 
+  count(character, word, sort = T) %>% 
+  filter(n > 3) #%>% 
+  # group_by(character) %>% 
+  # top_n(100, wt = n) %>% 
+  # ungroup() %>% 
+  # arrange(character)
+```
+
+
+```{r}
+plot <- df.1 %>% 
+  #filter(character == "Zuko") %>% 
+  ggplot(aes(label = word, 
+             size = n,
+             color = word,
+             group = character))+
+  geom_text_wordcloud_area()+
+  scale_size_area(max_size = 25)+
+  theme_void()+
+  theme(plot.background = element_rect(fill = "#282828"),
+        plot.title = element_text(color = "#c4c400",
+                                  family = "CenturySch",
+                                  size = 20,
+                                  hjust = .5,
+                                  vjust = .8),
+        plot.subtitle = element_text(color = "white",
+                                     family = "AvantGarde",
+                                     face = "bold",
+                                  size = 15,
+                                  hjust = .5,
+                                  vjust = .8),
+        plot.caption = element_text(color = "#c4c400"))+
+  labs(title = "Most used words by Avatars",
+       subtitle = "Character: \n\n{current_frame}",
+       caption = "#TidyTuesday Project - Week 33")+
+  transition_manual(character)
+```
+
+
+```{r}
+p <- animate(plot, duration = 20)
+
+anim_save("animation_week_33.gif",p)
+```
