@@ -20,11 +20,11 @@ theme_set(theme_void())
 path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_33"
 ```
 
+
 ```{r}
 tuesdata <- tidytuesdayR::tt_load(2020, week = 33)
 
 df.1 <- tuesdata$avatar
-
 #glimpse(df.1)
 ```
 

@@ -1,0 +1,185 @@
+---
+title: "week_34"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### I have to rewiew this code - it is a mess
+
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+library(ggrepel)
+library(mdthemes)
+library(extrafont)
+#library(paletteer)
+
+options(scipen = 999)
+theme_set(theme_light())
+
+path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_34"
+
+https://colorswall.com/palette/217/
+```
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2020, week = 34)
+```
+
+
+```{r}
+df.1 <- tuesdata[[1]]
+
+df.2 <- tuesdata[[2]]
+
+df.3 <- tuesdata[[3]]
+df.2 %>% count(threat_type)
+```
+
+
+```{r}
+df.1 <- df.1 %>% 
+  janitor::clean_names()
+
+df.1 <- df.1 %>%
+  pivot_longer(cols = threat_aa:threat_ge, 
+               names_to = "threats", 
+               values_to = "values") %>% 
+  select(continent, threats, values) 
+
+df.1 <- df.1 %>% 
+  filter(values > 0) %>% 
+  count(threats, continent, 
+            name = "n_treats", sort= T) 
+
+df.1 <- df.1 %>% 
+  mutate(threats = str_remove(threats, "threat_"))
+
+df.1 <- df.1 %>% 
+  pivot_wider(names_from = threats, values_from = n_treats)
+```
+
+```{r}
+dt.plot <- df.1 %>%
+     mutate_each(funs(rescale), -continent)
+dt.plot %>% 
+  replace_na(replace = 0)
+```
+
+```{r}
+library(ggradar)
+
+ggradar::ggradar(dt.plot, )
+```
+
+
+```{r}
+df.1 <- df.1 %>% 
+  distinct() %>%
+  mutate(reescale = rescale(n_treats)) 
+
+df.1 <- df.1 %>% 
+  mutate(continent = fct_reorder(continent, n_treats, sum,.desc = T),
+         continent = fct_lump_min(continent, 4))
+```
+
+
+
+```{r}
+colors <- c("#e06377","#b8a9c9", "#c83349", "#622569", "#eeac99", "#e4b730")
+
+backcolor <- "#dcffb3"
+
+fontcolor <- "#0d817c"
+
+fakecolor <- rep("#0d817c" , 11)
+```
+
+```{r}
+
+leg <- df.1 %>% 
+  distinct(threats) %>% 
+  pull() %>%  paste(c(" = Agriculture & Aquaculture",
+                   " = Biological Resource Use", 
+                   " = Natural System Modifications",
+                   " = Invasive Species(?)",
+                   " = ????",
+                   " =  Energy Production & Mining",
+                   " = Climate Change",
+                   " = Human Intrusions(?)",
+                   " = Geological Events",
+                   " = Pollution ",
+                   " = Transportation Corridor(?)"))
+
+leg_vector <-leg %>% 
+  pull()
+```
+
+
+```{r}
+plot <- df.1 %>%
+  mutate(group = "group") %>% 
+  filter(!continent %in% c("Europe", "Oceania")) %>% 
+  #filter(continent == "Oceania") %>%
+  ggplot(aes(x = threats,
+             y = n_treats,
+             color = threats), 
+         )+
+  geom_point(alpha = 0.5) +
+  geom_polygon(aes(group = group),
+               fill = "#e06377",
+               alpha = .5, show.legend = F)+
+  #scale_fill_manual(labels = leg)+
+  scale_color_manual("Threats", values = fakecolor, labels = leg_vector)+
+  coord_polar()+
+  facet_wrap(vars(continent))+
+  theme_minimal()+ #guides(color = guide_legend(override.aes = list(size=5)))
+  #guides(fill = guide_legend(override.aes = list(fill="#0d817c")))+
+  labs(title = "Plants in Danger", 
+       subtitle = "Threats in the continents", 
+       y = "", x = "")
+```
+
+```{r}
+X11()
+plot_save <- plot +
+  theme(
+    plot.title = element_text(color = fontcolor, 
+                             size = 20,
+                             face = "bold",
+                             family = "Lucida Sans Typewriter"),
+    plot.subtitle = element_text(color = fontcolor, 
+                             size = 15,
+                             family = "Lucida Sans Typewriter"),
+    plot.background = element_rect(fill = "#83de9f", 
+                                   color = fontcolor),
+    panel.border = element_rect(color = fontcolor, 
+                                fill = "transparent"),
+    panel.grid.major = element_line(linetype = "dotted", 
+                                    color = fontcolor),
+    legend.key = element_rect(fill = NA, color = NA),
+    legend.title.align = .5,
+    legend.text = element_text(color = fontcolor, face = "bold"),
+    legend.title = element_text(color = fontcolor,
+                                face = "bold",
+                                size = 15,
+                                family = "Lucida Sans Typewriter"),
+    axis.text.x = element_text(color = fontcolor, 
+                               size = 15,
+                               hjust = -1,
+                               vjust = -1),
+    axis.text.y = element_blank(),
+    strip.text = element_text(color = fontcolor,
+                              size = 15,
+                              face = "bold",
+                              vjust = 1, 
+                              hjust = 1))
+```
+
+
+```{r}
+ggsave(path = path, filename = "week_34.png", plot = plot_save, width = 30, height = 20, units = "cm")
+```
