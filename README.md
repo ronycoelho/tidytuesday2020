@@ -1,5 +1,9 @@
-# my_tidytuesday
+# My TidyTuesday
+
 [Following the TidyTuesday Project](https://github.com/rfordatascience/tidytuesday/tree/master/data/2020) 
+
+## Week 33
+![](https://github.com/ronycoelho/tidytuesday/blob/master/weeK_33/animation_week_33.gif)
 
 ## Week 32
 ![](https://github.com/ronycoelho/tidytuesday/blob/master/week_32/week_32.png)
