@@ -12,6 +12,7 @@ library(tidytuesdayR)
 library(tidyverse)
 library(mdthemes)
 library(paletteer)
+source("themes.R")
 ```
 
 ```{r}
@@ -39,7 +40,10 @@ df %>%
     str_detect(death_cause, "Predati") ~ "Predation",
     str_detect(death_cause, "Collar") ~ "Collar still in Field",
     str_detect(death_cause, "ollision") ~ "Collision",
-    TRUE ~ death_cause)) %>% 
+    TRUE ~ death_cause)) 
+
+
+%>% 
     replace_na(death_cause.1, "Not registred") %>% 
     count(death_cause.1)
 ```

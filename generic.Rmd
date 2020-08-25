@@ -10,9 +10,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidytuesdayR)
 library(tidyverse)
+library(pdftools)
 #library(ggforce)
 library(mdthemes)
 library(paletteer)
+source("themes.R")
+
 
 options(scipen = 999)
 theme_set(theme_light())
@@ -32,8 +35,18 @@ df.1 <- df.1 %>%
 
 ```
 
-
 ```{r}
+# width = 17, height = 8.5
+# width = 10, height = 5.7, device = cairo_pdf
+# width = 19, height = 11, device = cairo_pdf
+# width = 9, height = 14, device = cairo_pdf
+# width = 15, height = 12
 ggsave(path = path, filename = "week_32.png", plot = combined, width = 30, height = 30, units = "cm")
 ```
 
+```{r}
+ggsave(filename = "plot_cairo.pdf", device = cairo_pdf) 
+#Saving 5.27 x 3.93 in image == 13 x 9 centimetros
+ggsave(filename = "plot_not_cairo.pdf")
+pdftools::pdf_convert("plot_cairo.pdf", format = "png", dpi = 250) #dpi 250-350
+```

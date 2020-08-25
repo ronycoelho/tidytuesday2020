@@ -1,0 +1,122 @@
+---
+title: "Tidytuesday_generic"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+library(extrafont)
+library(pdftools)
+library(grid)
+library(jpeg)
+library(mdthemes)
+library(paletteer)
+source("themes.R")
+
+
+options(scipen = 999)
+theme_set(theme_light())
+
+path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_35"
+
+setwd(path)
+```
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2020, week = 35)
+df.1 <- tuesdata[[1]]
+
+img <- jpeg::readJPEG("chopped.png")
+img <- rasterGrob(img, interpolate=TRUE)
+
+```
+
+```{r}
+cores <- paste0("#", c("D75E27", "555356", "85060F"))
+
+scales::show_col(cores)
+
+font <- extrafont::fonts()[59]
+font2 <- extrafont::fonts()[11]
+```
+
+
+# Explore
+```{r}
+#df.1 %>% glimpse()
+plot <- df.1 %>% 
+  count(season, season_episode, episode_rating) %>% 
+  arrange(desc(episode_rating)) %>% 
+  drop_na() %>% 
+  ggplot(aes(season_episode, season))+
+  annotation_custom(img, xmin=12, ymin = -20)+
+  geom_tile(aes(fill= episode_rating), 
+             height = 0.5,
+            alpha = .9, 
+            color = alpha("white", .5))+
+  scale_y_reverse(breaks = seq(1,43, 2) )+
+  scale_x_continuous(breaks = 1:max(df.1$season_episode))+
+  scale_fill_distiller(palette = "Greys", 
+                       direction = 1,
+                       limits = c(5,10),
+                       breaks = seq(5, 10, 0.5))+
+  # viridis::scale_fill_viridis(option = "A", 
+  #                             direction = -1,
+  #                             limits = c(5,10),
+  #                             breaks = seq(5,10, 0.5))+
+   #, xmax=Inf, ymin=Inf, ymax=-Inf)+
+  theme_minimal(base_size = 20)+
+  theme(
+    text = element_text(color = cores[3],
+                        family = font,
+                        face = "bold"),
+    axis.text = element_text(color = cores[1], face = "bold"),
+    plot.background = element_rect(fill = "#FFC742"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = alpha(cores[2], .4), 
+                                    linetype = "dotted"),
+    legend.position = "top",
+    axis.title.y = element_text(angle = 0, 
+                                vjust = 1, 
+                                hjust = 1),
+    axis.text.y = element_text(family = font2)
+  ) +
+  guides(fill = guide_legend(title="",
+                              nrow = 1, 
+                             label.position= "top",
+                             keywidth = unit(2, "cm"),
+                             keyheight = unit(.25, "cm")
+                            ))+
+  labs(title = "Chopped!",
+        subtitle = "IMDB sourced episode rating",
+       x = "Episodes",
+       y = "Seasons",
+       caption = "#TidyTuesday_week_35")         
+
+
+#plot  
+```
+
+```{r}
+# width = 17, height = 8.5
+# width = 10, height = 5.7, device = cairo_pdf
+# width = 19, height = 11, device = cairo_pdf
+# width = 9, height = 14, device = cairo_pdf
+# width = 15, height = 12
+ggsave(path = path, filename = "week_35.png", 
+       plot = plot, 
+       width = 40, 
+       height = 20, units = "cm")
+```
+
+```{r}
+# ggsave(filename = "plot_cairo.pdf", device = cairo_pdf) 
+# #Saving 5.27 x 3.93 in image == 13 x 9 centimetros
+# ggsave(filename = "plot_not_cairo.pdf")
+# pdftools::pdf_convert("plot_cairo.pdf", format = "png", dpi = 250) #dpi 250-350
+```
