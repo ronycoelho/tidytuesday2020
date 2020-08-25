@@ -2,6 +2,9 @@
 
 [Following the TidyTuesday Project](https://github.com/rfordatascience/tidytuesday/tree/master/data/2020) 
 
+## Week 35
+![](https://github.com/ronycoelho/tidytuesday/blob/master/week_35/week_35.png)
+
 ## Week 34 
 ![](https://github.com/ronycoelho/tidytuesday/blob/master/week_34/week_34.png)
 
