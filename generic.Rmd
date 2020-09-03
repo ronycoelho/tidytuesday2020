@@ -7,32 +7,132 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Libraries anda settings
 ```{r}
 library(tidytuesdayR)
 library(tidyverse)
+library(gganimate)
 library(pdftools)
 #library(ggforce)
 library(mdthemes)
 library(paletteer)
 source("themes.R")
 
-
 options(scipen = 999)
 theme_set(theme_light())
 
-path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_31"
+path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_36"
 ```
 
+# Load data
 ```{r}
-tuesdata <- tidytuesdayR::tt_load(2020, week = 32)
-df.1 <- tuesdata[[1]]
+tuesdata <- tidytuesdayR::tt_load(2020, week = 36)
+df.1 <- tuesdata$key_crop_yields
 
 df.1 <- df.1 %>% 
   janitor::clean_names()
 ```
 
+# Manipulating
 ```{r}
+df.2 <- df.1 %>%
+  filter(entity == "Brazil") %>%
+  pivot_longer(cols = 4:last_col(),
+               names_to = "crop", 
+               values_to = "crop_production") %>% 
+  mutate(crop = str_remove(crop, "\\_tonnes_per_hectare"))
+```
 
+# Colors
+```{r}
+crops <- unique(df.2$crop)
+color <- c("#F5DEB3", "#f0ebd8", "#EEB734", 
+           "#665847", "#ffc284","#2B0F0E", 
+           "#739122", "#272D2D", "#dda15e", 
+           "#4D342A", "#fffb95")
+# scales::show_col(color)
+
+back_color <- "#fff1e6"
+font_color <- "#1d0b04"
+
+names(color)<- crops
+```
+
+# Theme update
+```{r}
+theme_set(theme_void())
+
+theme_update(
+          text = element_text(color = font_color),
+         plot.background = element_rect(fill = back_color, 
+                                        color = back_color),
+        axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        plot.margin = unit(c(1,1,1,5), "cm"),
+        plot.title = element_text(hjust = 0, size = 22, color = font_color))
+```
+
+# Manipulating
+```{r}
+df.3 <- 
+  df.2 %>%
+  drop_na(crop_production) %>% 
+  mutate(crop_production = round(crop_production, 1)) %>% 
+  arrange(year, desc(crop_production)) %>%
+  group_by(year) %>% 
+  mutate(rank = row_number(),
+         rank = ifelse(nchar(rank)==1, paste0(0, rank), rank))
+```
+
+# Plot
+```{r}
+# https://typethepipe.com/vizs-and-tips/reorder-bars-r-ggplot-gganimate/  
+
+#plot <- 
+  df.3 %>%
+  filter(year == 1961) %>% 
+  ggplot(aes(x = crop_production,
+             y = fct_reorder(rank, crop_production), 
+             fill = crop,
+             group = crop))+
+  geom_col()+
+  scale_fill_manual(values = color)+
+  geom_text(aes(x= 0, y = rank,
+                label= crop, 
+                group= crop),
+                hjust=1.25) +
+  theme_void()+
+  coord_fixed(clip = "off", expand = F)+
+  labs(title = '{closest_state}')
+#+
+  # transition_states(year,
+  #                   transition_length = 2,
+  #                   state_length = 3)
+
+plot  
+
+# Basic code from:  
+# https://www.r-bloggers.com/how-to-create-a-bar-chart-race-in-r-mapping-united-states-city-population-1790-2010/
+
+  # geom_tile(aes( y = prod/2, height = prod, fill = crop),
+  #           width = 0.9)+
+  # scale_fill_manual(values = color)+
+  # geom_text(aes(label = crop), vjust = 1, 
+  #           colour = "black", fontface = "bold") +
+  # geom_text(aes(label = scales::comma(prod)), 
+  #           hjust = "left", colour = "grey30")+
+  # coord_flip(clip = "off", expand = TRUE)+
+  # labs(title='{frame_time}', 
+  #      x = "",y="") + 
+  # theme(plot.title = element_text(hjust = 1, size = 22))+
+  # guides(fill = "none")+
+  # transition_time(as.integer(year)) +
+  #       ease_aes('cubic-in-out')
+```
+
+# run plot
+```{r}
+plot
 ```
 
 ```{r}

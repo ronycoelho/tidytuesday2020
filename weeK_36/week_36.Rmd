@@ -1,0 +1,157 @@
+--
+title: "Week_36"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache.lazy = T)
+```
+
+# Libraries anda settings
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+library(gganimate)
+library(pdftools)
+#library(ggforce)
+library(mdthemes)
+library(paletteer)
+#source("themes.R")
+
+options(scipen = 999)
+theme_set(theme_light())
+extrafont::loadfonts()
+
+
+#path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_36"
+#setwd(path)
+```
+
+# Load data
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2020, week = 36)
+df.1 <- tuesdata$key_crop_yields
+
+df.1 <- df.1 %>% 
+  janitor::clean_names()
+```
+
+# Manipulating
+```{r}
+df.2 <- df.1 %>%
+  filter(entity == "Brazil") %>%
+  pivot_longer(cols = 4:last_col(),
+               names_to = "crop", 
+               values_to = "crop_production") %>% 
+  mutate(crop = str_remove(crop, "\\_tonnes_per_hectare"),
+         crop = str_replace(crop, "_", " "),
+         crop = str_trim(crop, side = "both"))
+```
+
+# Colors and font
+```{r}
+crops <- unique(df.2$crop)
+color <- c("#F5DEB3", "#f0ebd8", "#EEB734", 
+           "#665847", "#ffc284","#2B0F0E", 
+           "#739122", "#272D2D", "#dda15e", 
+           "#4D342A", "#fffb95")
+
+#scales::show_col(font_color)
+
+back_color <- "#fff1e6"
+#font_color <- "#1d0b04"
+
+font <- extrafont::fonts()[56]
+
+names(color)<- crops
+```
+
+# Theme update
+```{r}
+theme_set(theme_minimal())
+```
+
+# Manipulating
+```{r}
+df.3 <- 
+  df.2 %>% 
+  drop_na(crop_production) %>% 
+  mutate(crop_production = round(crop_production, 1)) %>% 
+  arrange(year, desc(crop_production)) %>%
+  group_by(year) %>% 
+  mutate(rank = row_number(),
+         rank = ifelse(nchar(rank)==1, paste0(0, rank), rank))
+```
+
+# Plot
+```{r}
+# Basic plot from:
+# https://typethepipe.com/vizs-and-tips/reorder-bars-r-ggplot-gganimate/  
+
+plot <- 
+  df.3 %>%
+  #filter(year == 1961) %>% 
+  ggplot(aes(x = crop_production,
+             y = fct_reorder(rank, crop_production),
+             fill = crop,
+             group = crop))+
+  geom_col(color = "brown")+
+  scale_fill_manual(values = color)+
+  geom_text(aes(x= 0, 
+                y = rank,
+                label= crop, 
+                group= crop),
+                hjust= 1.1,
+                vjust = 0.5,
+                color = "brown",
+                size = 6) +
+  geom_text(aes(label = scales::comma(crop_production, 
+                                      accuracy = .1)), 
+            hjust = "left",
+            colour = "brown") +
+  coord_fixed(clip = "off", 
+              expand = F)+ #, ratio = 1/1.5
+  labs(x = "Tonnes per hectare",
+        title = "Brazilian crops per hectare over time",
+        subtitle = "Production per year: {closest_state}",
+        caption = "TidyTuesday Projetc - Week 36")+
+  guides(fill = "none")+
+  theme(
+        plot.background = element_rect(fill = back_color, 
+                                        color = back_color),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(color = "brown"),
+        axis.text.x = element_text(color = "brown"),
+        axis.title.y = element_blank(),
+        plot.margin = unit(c(1,1,1,6), "cm"),
+        plot.caption = element_text(color = "brown"),
+        plot.title = element_text(hjust = 0, size = 22, color = "brown4", 
+                                  family = font, face = "bold"),
+        plot.subtitle = element_text(hjust = 0, 
+                                     size = 22, color = "brown"),
+        panel.grid = element_blank()) +
+  transition_states(year,
+                    transition_length = 2,
+                     state_length = 5)
+
+```
+
+# run plot
+```{r fig.width=15, fig.height=10}
+# plot
+```
+
+# save
+```{r}
+getwd()
+p <- animate(plot, duration = 20, height = 600, width = 800)
+
+anim_save("animated_week_36.gif",p)
+# magick::image_write(
+#   animate(plot, width = 1000, height = 800), 
+#   "test.gif"
+# )
+
+
+
+```
