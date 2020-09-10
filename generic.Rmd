@@ -7,146 +7,107 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Libraries anda settings
+# Libraries and settings
 ```{r}
+rm(list = ls())
 library(tidytuesdayR)
 library(tidyverse)
-library(gganimate)
 library(pdftools)
-#library(ggforce)
-library(mdthemes)
-library(paletteer)
-source("themes.R")
+#library(mdthemes)
+# library(paletteer)
+#source("themes.R")
 
 options(scipen = 999)
-theme_set(theme_light())
+theme_set(theme_light(base_size = 25))
 
-path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_36"
+#dir.create("week_37")
+
+#path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_37"
+#setwd(path)
 ```
 
-# Load data
+# Import data
 ```{r}
-tuesdata <- tidytuesdayR::tt_load(2020, week = 36)
-df.1 <- tuesdata$key_crop_yields
+tuesdata <- tidytuesdayR::tt_load(2020, week = 37)
 
-df.1 <- df.1 %>% 
+df.1 <- tuesdata$friends_info
+
+df.1 <- df.1 %>%
   janitor::clean_names()
 ```
 
 # Manipulating
 ```{r}
-df.2 <- df.1 %>%
-  filter(entity == "Brazil") %>%
-  pivot_longer(cols = 4:last_col(),
-               names_to = "crop", 
-               values_to = "crop_production") %>% 
-  mutate(crop = str_remove(crop, "\\_tonnes_per_hectare"))
+
 ```
 
-# Colors
+# Themes
 ```{r}
-crops <- unique(df.2$crop)
-color <- c("#F5DEB3", "#f0ebd8", "#EEB734", 
-           "#665847", "#ffc284","#2B0F0E", 
-           "#739122", "#272D2D", "#dda15e", 
-           "#4D342A", "#fffb95")
-# scales::show_col(color)
 
-back_color <- "#fff1e6"
-font_color <- "#1d0b04"
-
-names(color)<- crops
-```
-
-# Theme update
-```{r}
-theme_set(theme_void())
-
-theme_update(
-          text = element_text(color = font_color),
-         plot.background = element_rect(fill = back_color, 
-                                        color = back_color),
-        axis.text.y = element_blank(),
-        axis.title.y = element_blank(),
-        plot.margin = unit(c(1,1,1,5), "cm"),
-        plot.title = element_text(hjust = 0, size = 22, color = font_color))
-```
-
-# Manipulating
-```{r}
-df.3 <- 
-  df.2 %>%
-  drop_na(crop_production) %>% 
-  mutate(crop_production = round(crop_production, 1)) %>% 
-  arrange(year, desc(crop_production)) %>%
-  group_by(year) %>% 
-  mutate(rank = row_number(),
-         rank = ifelse(nchar(rank)==1, paste0(0, rank), rank))
+# crops <- unique(df.2$crop)
+# color <- c("#F5DEB3", "#f0ebd8", "#EEB734", 
+#            "#665847", "#ffc284","#2B0F0E", 
+#            "#739122", "#272D2D", "#dda15e", 
+#            "#4D342A", "#fffb95")
+# # scales::show_col(color)
+# 
+# back_color <- "#fff1e6"
+# font_color <- "#1d0b04"
+# 
+# names(color)<- crops
+theme_set(
+ theme_light(base_size = 25)+
+  theme(
+    text = element_text(color = "blue"),
+    plot.background = element_rect(
+      linetype = "dashed",
+      fill = "orange",
+      color = "red",
+      size = 20),
+    panel.background = element_rect(color = "white", 
+                                    fill = "purple"),
+    axis.text.y = element_blank(),
+    axis.title.y = element_blank(),
+    plot.margin = unit(c(1, 1, 1, 1), "cm"),
+    plot.title = element_text(
+      hjust = 0,
+      size = 45,
+      color = "green")
+  )  
+)
 ```
 
 # Plot
 ```{r}
-# https://typethepipe.com/vizs-and-tips/reorder-bars-r-ggplot-gganimate/  
-
-#plot <- 
-  df.3 %>%
-  filter(year == 1961) %>% 
-  ggplot(aes(x = crop_production,
-             y = fct_reorder(rank, crop_production), 
-             fill = crop,
-             group = crop))+
-  geom_col()+
-  scale_fill_manual(values = color)+
-  geom_text(aes(x= 0, y = rank,
-                label= crop, 
-                group= crop),
-                hjust=1.25) +
-  theme_void()+
-  coord_fixed(clip = "off", expand = F)+
-  labs(title = '{closest_state}')
-#+
-  # transition_states(year,
-  #                   transition_length = 2,
-  #                   state_length = 3)
-
-plot  
-
-# Basic code from:  
-# https://www.r-bloggers.com/how-to-create-a-bar-chart-race-in-r-mapping-united-states-city-population-1790-2010/
-
-  # geom_tile(aes( y = prod/2, height = prod, fill = crop),
-  #           width = 0.9)+
-  # scale_fill_manual(values = color)+
-  # geom_text(aes(label = crop), vjust = 1, 
-  #           colour = "black", fontface = "bold") +
-  # geom_text(aes(label = scales::comma(prod)), 
-  #           hjust = "left", colour = "grey30")+
-  # coord_flip(clip = "off", expand = TRUE)+
-  # labs(title='{frame_time}', 
-  #      x = "",y="") + 
-  # theme(plot.title = element_text(hjust = 1, size = 22))+
-  # guides(fill = "none")+
-  # transition_time(as.integer(year)) +
-  #       ease_aes('cubic-in-out')
+plot <- mtcars %>% 
+  ggplot(aes(hp, mpg))+
+  geom_point()+
+  labs(title = "title")
 ```
 
 # run plot
 ```{r}
-plot
+X11(width = 15, height = 10); plot
 ```
 
+# Save plot
 ```{r}
 # width = 17, height = 8.5
 # width = 10, height = 5.7, device = cairo_pdf
 # width = 19, height = 11, device = cairo_pdf
 # width = 9, height = 14, device = cairo_pdf
 # width = 15, height = 12
-ggsave(path = path, filename = "week_32.png", plot = combined, width = 30, height = 30, units = "cm")
-```
-
-```{r}
-ggsave(filename = "plot_cairo.pdf", device = cairo_pdf) 
 #Saving 5.27 x 3.93 in image == 13 x 9 centimetros
-ggsave(filename = "plot_not_cairo.pdf")
-pdftools::pdf_convert("plot_cairo.pdf", format = "png", dpi = 250) #dpi 250-350
+
+# Save to pdf
+ggsave(filename = "plot_cairo_test.pdf",
+       plot = plot, 
+       width = 10, height = 5, 
+       device = cairo_pdf) 
+
+# Convert to png
+pdftools::pdf_convert("plot_cairo_test.pdf", 
+                      filenames = "plot_test_from_pdf.png",
+                      format = "png", 
+                      dpi = 250) #dpi 250-350
 ```

@@ -1,0 +1,156 @@
+---
+title: "week_37"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Libraries and settings
+```{r}
+rm(list = ls())
+library(tidytuesdayR)
+library(tidyverse)
+library(pdftools)
+library(extrafont)
+#library(mdthemes)
+# library(paletteer)
+source("themes.R")
+
+options(scipen = 999)
+#theme_set(theme_light(base_size = 25))
+
+#Not run
+#dir.create("week_37")
+#path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_37"
+#setwd(path)
+```
+
+# Import data
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2020, week = 37)
+
+df.1 <- tuesdata$friends_info
+```
+
+# Manipulating
+```{r}
+df.1 <- df.1 %>%
+  arrange(season, episode) %>%
+  group_by(season) %>% 
+  mutate(Xmin = min(air_date),
+         Xmax = max(air_date),
+         Xmean = median(air_date),
+         labelseason = paste0("season\n", season))%>%
+  ungroup() %>% 
+  mutate(season = as.factor(season))
+
+# I've learned how to do the panel background with the Rstudio Community: #https://community.rstudio.com/t/geom-rect-as-background-fill-color/79917/2
+
+minrate <- min(df.1$imdb_rating)
+maxrate <- max(df.1$imdb_rating)
+
+rect_data.1 <- df.1 %>% 
+  select(season, Xmin, Xmax) %>% 
+  distinct()  
+
+rect_data.2 <- rect_data %>% 
+                mutate(Xmax2=lead(Xmin),
+                       Xmax=if_else(is.na(Xmax2),Xmax,Xmax2))
+```
+
+# Themes
+```{r}
+colors <- paste0("#", c("ff4238","ffdc00","42a2d6","a90006","fff580","00009e","76516e","a1bf6b","d47b43","807b8f"))
+
+font <- extrafont::fonts()[143]
+
+theme_set(
+ theme_minimal(base_size = 25, base_family = font)+
+  theme(
+      
+      plot.background = element_rect(
+      linetype = "dotted",
+      fill = "black",
+      color = "white",
+      size = 5),
+      panel.background = element_rect(color = "black", 
+                                    fill = "black"),
+    axis.text.y = element_text(color = "white"),
+    axis.title.y = element_text(color = "white", hjust = 1),
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(color = "white"),
+    plot.margin = unit(c(1, 1, 1, 3), "cm"),
+    legend.title = element_text(color = "white", size = 18),
+    legend.text  = element_text(color = "white", size = 14),
+    legend.position = c(0,0),
+    legend.justification = c(1.1,0),
+    legend.box.spacing = unit(c(0, 0, 0, 0), "cm"),
+    plot.caption = element_text(color = "white"),
+    
+    plot.title = element_text(
+      hjust = 0.5,
+      size = 40,
+      color = "white")
+  )  
+)
+```
+
+
+```{r}
+p <- ggplot() +
+  geom_rect(
+    data = rect_data.2, # or rect_data for actual season end boundary
+    mapping = aes(
+      xmin = Xmin,
+      xmax = Xmax,
+      ymin = minrate,
+      ymax = maxrate,
+      fill = season
+    ))
+```
+
+# run plot
+```{r}
+#X11(width = 20, height = 10); plot
+plot <- p + geom_line(
+    data = df.1,
+    mapping = aes(x = air_date, y = imdb_rating), color = "white") +
+    geom_point(data = df.1, aes(x = air_date, 
+                                y = imdb_rating,
+                                size = us_views_millions),
+               shape = 21, 
+               fill = "transparent",
+               color = "white")+
+  scale_size("US Views\nby Millions", range = c(0,10))+
+  geom_text(data = df.1, aes(x = Xmean, y =7.5, 
+                             label = labelseason), 
+            family = font, size = 8, 
+            color = "white")+
+  scale_fill_manual(values = color)+
+  guides(fill = "none",
+         size = guide_legend(title.position = "bottom"))+
+  labs(title = "F   r   i   e   n   d   s",
+       caption = "TidyTuesday Project - Week 37",
+       x = "", y = "IMDB Rating")
+```
+
+# Save plot
+```{r}
+# Save to pdf
+ggsave(filename = "plot_week_37.pdf",
+       plot = plot, 
+       width = 20, height = 10, 
+       device = cairo_pdf) 
+
+# Convert to png
+pdftools::pdf_convert("plot_week_37.pdf", 
+                      filenames = "plot_week_37.png",
+                      format = "png",
+                      dpi = 600) #dpi 250-350
+
+# ggsave(filename = "plot_week_37_2.png",
+#        plot = plot, dpi = 600,
+#        width = 20, height = 10)
+```
