@@ -1,0 +1,99 @@
+---
+title: "Week 38"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Libraries and settings
+```{r}
+rm(list = ls())
+library(tidytuesdayR)
+library(tidyverse)
+library(pdftools)
+options(scipen = 999)
+
+#dir.create("week_38")
+#path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_38"
+#setwd(path)
+```
+
+# Import data
+```{r}
+df.1 <- tidytuesdayR::tt_load(2020, week = 38)
+df.1 <- df.1$kids
+```
+
+# Manipulating
+```{r}
+df.2 <- df.1 %>% 
+  filter(variable == "PK12ed") %>% 
+  select(state, year, inf_adj) %>% 
+  mutate(mean = mean(inf_adj)) %>% 
+  mutate(value_state = mean - inf_adj)
+```
+
+# Themes
+```{r}
+theme_set(
+ theme_minimal(base_size = 12)+
+  theme(
+    plot.background=element_rect(fill = "#f0efeb"),
+    plot.title = element_text(vjust = -10, hjust = 0.1,
+                              size = 25),
+    plot.subtitle = element_text(vjust = -25, hjust = 0.11), 
+    axis.text.y = element_blank(),
+    panel.grid = element_line(linetype="dotted", color="lightgray")))
+```
+
+# Plot
+```{r}
+plot <- df.2 %>% 
+  filter(year == 2016) %>% 
+  mutate(label_pos = ifelse(value_state > 0, state, NA),
+         label_neg = ifelse(value_state < 0, state, NA),
+         seg_color = ifelse(value_state > 0, "red", "blue"))%>%
+  mutate(state = fct_reorder(state, value_state)) %>% 
+  ggplot(aes(x=value_state, y = state)) +
+  scale_x_continuous(
+                     labels = scales::dollar_format())+
+  geom_vline(aes(xintercept=0), color = "yellow")+
+  geom_segment(aes(x=0, xend=value_state, 
+                   y = state, yend=state,
+                   color = seg_color),
+               size = 2,
+               show.legend = F)+
+  geom_text(aes(x= 0, y = state, label = label_pos, color = seg_color), show.legend=F,  
+            hjust = 1, vjust = 0.3, nudge_x = -1000000)+
+  geom_text(aes(x= 0, y = state, label = label_neg, color = seg_color), show.legend=F, 
+            hjust = 0, vjust = 0.3, nudge_x = 1000000)+
+  annotate(
+    geom = "curve", x = -20000000, y = "South Carolina", 
+    xend = 0, yend = "Wisconsin", 
+    curvature = .3, arrow = arrow(length = unit(5, "mm")), color = "yellow")+
+  annotate(geom = "text", x = -20000000, y = "Arizona", 
+           label = "average = $9,617,056", hjust = "center")+
+  annotate(geom = "text", x = -57000000, y = "Delaware",
+           hjust = 0, vjust = 1,
+           label = "Values above and below average")+
+  labs(title = "US Spending on Kids in 2016",
+      subtitle = "Public spending on elementary and secondary education by state",
+      caption = "#TidyTuesday Project - Week 38",
+      y = "", x = "")
+```
+
+# run plot
+```{r}
+X11(width = 15, height = 10); plot
+```
+
+# Save plot
+```{r}
+ggsave(filename = "plot_week_38.png",
+       plot = plot, dpi = 300,
+       width = 15, height = 10)
+```
