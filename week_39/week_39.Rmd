@@ -78,7 +78,7 @@ plot <- df.2 %>%
   #count(year, peak_name,name = "times") %>% 
   ggplot(aes(x = year, y = peak_name))+
   geom_density_ridges(aes(fill = peak_name), 
-                      alpha = .9, color = font_color, show.legend=F)+
+                      alpha = .7, color = font_color, show.legend=F)+
   scale_fill_manual(values = palette)+
   scale_x_continuous(limits=c(1973, 2022), breaks=seq(1980, 2020, 10))+
   geom_text(aes(x=1979, y = peak_name, 
@@ -110,17 +110,17 @@ plot
 
 ### Method 1
 # Save to pdf
-ggsave(filename = "plot_week_39.pdf",
-       plot = plot, 
-       width = 15, height = 8, 
-       device = cairo_pdf) 
-
-# Convert to png
-pdftools::pdf_convert("plot_week_39.pdf", 
-                      filenames = "plot_week_39.png",
-                      format = "png", 
-                      dpi = 250) #dpi 250-350
-
+# ggsave(filename = "plot_week_39.pdf",
+#        plot = plot, 
+#        width = 15, height = 8, 
+#        device = cairo_pdf) 
+# 
+# # Convert to png
+# pdftools::pdf_convert("plot_week_39.pdf", 
+#                       filenames = "plot_week_39.png",
+#                       format = "png", 
+#                       dpi = 250) #dpi 250-350
+# 
 
 ### Method 2
 ggsave(plot = plot, filename = "plot_week_39_2.png",
