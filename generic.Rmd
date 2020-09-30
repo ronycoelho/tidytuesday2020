@@ -50,7 +50,8 @@ back_color <- "#6490B3" #"#2163A0"
 font_color <- "#DFDBD4"
 palette <- paste0("#",c("774936","6e4230","653a2a","5c3324","532c1e","4a2419","411d13","38160d","2f0e07","260701"))
 
-font <- extrafont::fonts()[114]
+# https://ronycoelho.github.io/ippc/fonts.html
+font <- extrafont::fonts()[87]
 ```
 
 # Theme update

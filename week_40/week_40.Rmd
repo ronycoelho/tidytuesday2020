@@ -1,0 +1,286 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache.lazy = T)
+```
+
+# Libraries anda settings
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+library(igraph)
+library(ggraph)
+library(patchwork)
+library(extrafont)
+
+options(scipen = 999)
+theme_set(theme_light())
+extrafont::loadfonts()
+
+
+#path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_36"
+#setwd(path)
+```
+
+# Load data
+```{r}
+#tuesdata <- tidytuesdayR::tt_load(2020, week = 40)
+
+sales <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/sales.csv')
+```
+
+```{r}
+font <- extrafont::fonts()[172]
+
+#######################
+
+
+
+grays <- colorRampPalette(c("#f8f9fa", "#212529"))(10)
+
+#scales::show_col(grays)
+
+new.colors <- colorRampPalette(c(grays[10], "yellow"))(40)
+
+back.color <- new.colors[16]
+```
+
+
+# Manipulating 1
+```{r}
+sales_df <- sales %>%
+  mutate(year = str_extract(released, "\\d{4}")) %>% 
+  mutate(country = as.factor(country),
+    country = recode_factor(country, "WW" = "Others"),
+    country = recode_factor(country, "World" = "Others"))
+
+titles_ts <- sales_df %>%
+  filter(artist == "Taylor Swift") %>% 
+  arrange(year) %>% 
+  mutate(titles_ts = str_trim(title, "both"),
+         titles_ts = paste0(year, " - ", titles_ts,"\n" )) %>%
+  distinct(titles_ts) %>% pull()
+
+titles_ts <- gsub('[\"]', '',paste(titles_ts, collapse = '"'))
+
+
+titles_be <- sales_df %>% 
+  filter(artist == "Beyoncé") %>% 
+  arrange(year) %>% 
+  mutate(titles_be = str_trim(title, "both"),
+         titles_be = paste0(year, " - ", titles_be,"\n" )) %>%
+  distinct(titles_be) %>% pull()
+
+titles_be <- gsub('[\"]', '',paste(titles_be, collapse = '"'))
+```
+
+
+# Manipulating 2
+```{r}
+temp_ts <- sales_df %>%
+  drop_na(country) %>%
+  filter(artist == "Taylor Swift") %>%
+  count(country, wt = sales, name="sales") %>% 
+  mutate(country = as.character(country))
+
+edges_ts <- data.frame(
+  from = "",
+  to = temp_ts$country
+)
+
+vertices_ts <- data.frame(
+  country = "",
+  sales = 0
+)
+
+vertices_ts <- rbind(temp_ts, vertices_ts) 
+
+vertices_ts <- vertices_ts %>% 
+    mutate(name = ifelse(country %in% c("Others", "US", "UK"), 
+                         paste0(country,"\n", "$", 
+                                format(sales, big.mark = "," )), country ),
+           name = str_remove(name, " "))
+
+mygraph_ts <- graph_from_data_frame(edges_ts, vertices = vertices_ts)
+```
+
+# Plot 1
+```{r}
+plot.1 <- ggraph(mygraph_ts, layout = 'circlepack',
+        circular = T, direction = "out", weight=sales ) + 
+  geom_node_circle(aes(fill =sales), 
+                   color = "yellow", alpha = .5, position = ) +
+  scale_fill_gradient(low = grays[5],
+  high = grays[10]) +
+  geom_node_text(aes(label=name), repel = T, fontface = "bold", color = "white", vjust = .5, hjust = .5)+
+  annotate(geom = "text", x = -13000, y = 0, label = titles_ts, color = "white", hjust = 0)+
+  coord_fixed(expand = T)+
+  #theme_gray()+
+  theme_void(base_family = font) +
+  theme(
+    text = element_text(family = font),
+    plot.title = element_text(
+      color = "white", size = 15, face = "bold", 
+      vjust = -14, hjust = 0.05),
+    plot.subtitle = element_text(
+      color = "white", size = 12, face = "bold", 
+      vjust = -16, hjust = 0.05),
+    legend.position="none",
+    plot.margin = unit(c(0,0,0,0), "cm"))+
+  labs(title = "Taylor Swift\n", subtitle ="Albuns:")
+
+plot.1
+```
+
+# Manipulating 3
+```{r}
+temp_be <- sales_df %>%
+  drop_na(country) %>%
+  filter(artist == "Beyoncé") %>%
+  count(country, wt = sales, name="sales") %>% 
+  arrange(desc(sales)) %>% 
+  mutate(country = as.character(country))
+
+edges_be <- data.frame(
+  from = "",
+  to = temp_be$country
+)
+
+vertices_be <- data.frame(
+  country = "",
+  sales = 0
+)
+
+vertices_be <- rbind(temp_be, vertices_be) 
+
+vertices_be <- vertices_be %>% 
+    mutate(name = ifelse(country %in% c("Others", "US", "UK"), 
+                         paste0(country,"\n", "$", 
+                                format(sales, big.mark = "," )), country ),
+           name = str_remove(name, " "))
+
+mygraph_be <- graph_from_data_frame(edges_be, vertices = vertices_be)
+```
+
+# Plot 2
+```{r}
+plot.2 <-ggraph(mygraph_be, layout = 'circlepack',weight = sales, circular = T) + 
+  geom_node_circle(aes(fill = sales), 
+                   color = "yellow", alpha = .5, show.legend = F) +
+  scale_fill_gradient(low = grays[5],
+  high = grays[10]) +
+  #scale_fill_grey(start = 0) +
+  geom_node_text(aes(label=name), repel = T, fontface = "bold", color = "white", vjust = 1, hjust = 0, show.legend = F )+
+  scale_x_continuous(limits = c(-6000, 12000))+
+  annotate(geom = "text", x = 7000, y = 900, label = titles_be, color = "white", hjust = 0)+
+  coord_fixed(expand = T)+
+  theme_void(base_family = font) +
+  theme(
+    text = element_text(family = font),
+    plot.title = element_text(color = "white", size = 15, face = "bold", vjust = - 14, hjust = .85),
+    plot.subtitle = element_text(color = "white", size = 12, face = "bold", vjust = - 16, hjust = .81),
+    legend.position="none",
+    plot.margin = unit(c(0,0,0,0), "cm"))+
+  labs(title = "Beyoncé\n", subtitle = "Albuns:")
+
+plot.2
+```
+
+# plot 3
+```{r}
+plot.3 <- sales_df %>% 
+  filter(artist == "Taylor Swift") %>% 
+  mutate(year = as.numeric(year))%>% 
+  count(year, wt = sales) %>% 
+  filter(year != 2020) %>%
+  mutate(ymax = paste0("$", format(max(n, na.rm = T), big.mark = ",")),
+         ymax = ifelse(n == max(n), ymax, NA),
+         ymin = paste0("$", format(min(n, na.rm = T), big.mark = ",")),
+         ymin = ifelse(n == min(n), ymin, NA)) %>%
+  ggplot(aes(year, n, group =1))+
+  geom_line(color = "yellow")+
+  geom_point(aes(size = n, fill = n), show.legend = F, 
+             shape = 21, color = "yellow", alpha = .5)+
+  geom_text(aes(label = ymax), hjust = -0.2, vjust = 0, color = "white")+
+  geom_text(aes(label = ymin), hjust = 1, vjust = 1, color = "white")+
+  scale_y_continuous(limits = c(0, 22000000),label =     scales::dollar_format())+
+  scale_x_continuous(limits = c(2003, 2019), breaks = seq(2003, 2019, 2))+
+  scale_fill_gradient(low = grays[5],
+  high = grays[10])+
+  theme(#axis.text.y = element_text(hjust = 0, vjust=.5, color = "white"),
+        text = element_text(family = font),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(color = "white"),
+        axis.title = element_blank(),
+        plot.background = element_rect(fill = "transparent", color = "transparent"),
+        axis.ticks = element_blank(),
+        panel.background = element_rect(fill = (alpha = .5 )),
+        panel.grid = element_line(color = alpha("white", .5)),
+        panel.grid.minor = element_blank())
+
+plot.3
+```
+
+# plot 4
+```{r}
+plot.4 <-sales_df %>% 
+  filter(artist == "Beyoncé") %>% 
+  mutate(year = as.numeric(year)) %>% 
+  #mutate(group = 1:nrow(sales_df)) %>% 
+  count(year, wt = sales) %>% 
+  filter(year != 2020) %>% 
+  mutate(ymax = paste0("$", format(max(n, na.rm = T), big.mark = ",")),
+         ymax = ifelse(n == max(n), ymax, NA),
+         ymin = paste0("$", format(min(n, na.rm = T), big.mark = ",")),
+         ymin = ifelse(n == min(n), ymin, NA)) %>%
+  ggplot(aes(year, n, group =1))+
+  geom_line(color = "yellow")+
+  geom_point(aes(size = n, fill = n), show.legend = F,
+             shape = 21, color = "yellow", alpha = .5) +
+  geom_text(aes(label = ymax), hjust = -0.2, vjust = 0, color = "white")+
+  geom_text(aes(label = ymin), hjust = 1, vjust = 1, color = "white")+
+  scale_y_continuous(limits = c(0, 22000000),label = scales::dollar_format())+
+  scale_x_continuous(limits = c(2003, 2019), breaks = seq(2003, 2019, 2))+
+  scale_fill_gradient(low = grays[5],
+  high = grays[10])+
+  theme(
+    text = element_text(family = font),    
+    axis.text.y = element_blank(),
+        axis.text.x = element_text(color = "white"),
+        axis.title = element_blank(),
+        plot.background = element_rect(fill = "transparent", color = "transparent"),
+        axis.ticks = element_blank(),
+        panel.background = element_rect(fill = (alpha = .5 )),
+        panel.grid = element_line(color = alpha("white", .5)),
+        panel.grid.minor = element_blank())
+```
+
+# Join plots
+```{r}
+plotfinal <- (plot.1+ plot.2)/
+(plot.3+ plot.4)+
+  plot_layout(heights = c(3,1))+
+  plot_annotation(title = "\nTaylor Swift & Beyoncé sells\n",
+  subtitle = "over time", 
+  #caption = "Source: Rosie Baillie and Dr. Sara Stoudt",
+    theme = theme(plot.title = 
+                    element_text(size=18, hjust=.5, vjust = - 8,
+                                 color="white", family = font),
+                  plot.subtitle = 
+                    element_text(size = 12, hjust = .5, vjust = -10, 
+                                 color="white", family = font),
+                  plot.margin = unit(c(0,1,1,1), "cm"),
+                  plot.background = 
+                    element_rect(fill = back.color, 
+                                 color = "white", size = 3)))
+```
+
+# Save
+```{r}
+ggsave(plotfinal, filename = "week_40.png", width = 13, height = 8)
+```
+
