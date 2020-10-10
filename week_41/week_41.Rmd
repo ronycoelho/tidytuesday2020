@@ -7,6 +7,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+In this #TidyTuesday I've tryied to reproduce the infografic created by AL-AHMADGAID B. ASAAD found in this post (https://alstatr.blogspot.com/2015/02/r-how-to-layout-and-design-infographic.html)[https://alstatr.blogspot.com/2015/02/r-how-to-layout-and-design-infographic.html]
+
 # Libraries and settings
 ```{r}
 rm(list = ls())
@@ -26,9 +28,9 @@ options(scipen = 999)
 theme_set(theme_minimal())
 loadfonts()
 
-#dir.create("week_39")
-
-# path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_39"
+# dir.create("week_41")
+# 
+# path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_41"
 # setwd(path)
 ```
 
@@ -40,16 +42,15 @@ df.1 <- tuesdata$tournament
 
 # Themes
 ```{r}
-scale_color <- viridis(15)
-
 scale_color_g <- ggsci::pal_lancet()(9)
 
-scales::show_col(colors)
-
+#scales::show_col(colors)
+# Extend colors 
 colors <- colorRampPalette(scale_color_g)
 
 colors <- colors(15)
 
+# Color vector
 champs <- df.1 %>%
   count(tourney_finish, school, sort = T) %>% 
   filter(tourney_finish == "Champ") %>% 
@@ -57,8 +58,9 @@ champs <- df.1 %>%
 
 champs.colors <- set_names(colors)
 
-winners_vector1 <- gsub('\\"', "\\", paste(paste0(champs[c(1:7)], "\n"), collapse = '"'))
-winners_vector2 <- paste(paste0(champs[c(8:15)], "\n"), collapse = '"')
+# 
+winners_vector1 <- gsub('\\"', "\\", paste(paste0(champs[c(1:8)], "\n"), collapse = '"'))
+winners_vector2 <- gsub('\\"', "\\", paste(paste0(champs[c(9:15)], "\n"), collapse = '"'))
 ```
 
 # tema 1
@@ -119,7 +121,7 @@ plot.1 <- df.1 %>%
   scale_fill_manual(values = champs.colors)+  
   geom_col()+
   theme(legend.position = "none")+
-  labs(title = "Winners", x = "")
+  labs(title = "Winners", x = "Number of times", y = "Schools")
 ```
 
 # Plot 2
@@ -139,7 +141,7 @@ plot.2 <- df.1 %>%
                  color = school,
                  ), size = 5,  alpha = .9)+
   scale_color_manual(values = champs.colors)+
-  labs(y = "Tourney position")+
+  labs(title = "Positions over time", y = "Tourney position", y = "years")+
   guides(colour = guide_legend(reverse=T))
 ```
 
@@ -155,11 +157,11 @@ plot.3 <- df.1 %>%
   ggplot(aes(x = year, y = tourney_finish)) +
   geom_line(aes(group = school, 
                  color = school
-                 ), alpha = .5)+
+                 ))+
   scale_color_manual(values = champs.colors)+
   facet_wrap(~school)+
   theme(legend.position = "bottom")+
-  labs(y = "Tourney position") +
+  labs(title = "Top 3 winners", y = "Tourney position") +
   guides(colour = guide_legend(reverse=T))
 ```
 
@@ -173,7 +175,7 @@ p3 <- plot.3 + kobe_theme()
 
 # Info
 ```{r}
-pdf("Info_8.pdf", width = 10, height = 20)
+pdf("Info_week_41.pdf", width = 10, height = 20)
 grid.newpage() 
 pushViewport(viewport(layout = grid.layout(4, 3)))
 grid.rect(gp = gpar(fill = "#E2E2E3", col = "#E2E2E3"))
@@ -185,20 +187,15 @@ print(p1, vp = vplayout(2, 1:3))
 grid.rect(gp = gpar(fill = "#E7A922", col = "#E7A922"), x = unit(0.5, "npc"), y = unit(0.82, "npc"), width = unit(1, "npc"), height = unit(0.11, "npc"))
 grid.text("Schools", y = unit(0.82, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar( col = "#CA8B01", cex = 13, alpha = 0.3))
 grid.text("Winners", vjust = 0, hjust = 0, x = unit(0.01, "npc"), y = unit(0.86, "npc"), gp = gpar( col = "white", cex = 1.2))
-grid.text(paste(winners_vector1), vjust = 0, hjust = 0, x = unit(0.01, "npc"), y = unit(0.79, "npc"), gp = gpar( col = "#552683", cex = 0.8))
+grid.text(paste(winners_vector1, sep = "\n"), vjust = 0.2, hjust = 0, x = unit(0.01, "npc"), y = unit(0.79, "npc"), gp = gpar( col = "#552683", cex = 0.8))
+grid.text(paste(winners_vector2, sep = "\n"), vjust = 0.2, hjust = 0, x = unit(0.15, "npc"), y = unit(0.79, "npc"), gp = gpar( col = "#552683", cex = 0.8))
 dev.off()
-
-
-grid.text(paste(
-  "http://alstatr.blogspot.com",
-  "http://alstatr.blogspot.com",
-  "Analysis with Programming",
-  "Al-Ahmadgaid B. Asaad",
-  "Annually",
-  "National",
-  "2011-2013", sep = "\n"), vjust = 0, hjust = 0, x = unit(0.15, "npc"), y = unit(0.79, "npc"), gp = gpar( col = "#552683", cex = 0.8))
-dev.off()
-
 ```
 
+```{r}
+pdftools::pdf_convert("Info_week_41.pdf", 
+                      filenames = "plot_week_37.png",
+                      format = "png",
+                      dpi = 600)
+```
 
