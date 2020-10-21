@@ -194,7 +194,7 @@ dev.off()
 
 ```{r}
 pdftools::pdf_convert("Info_week_41.pdf", 
-                      filenames = "plot_week_37.png",
+                      filenames = "plot_week_41.png",
                       format = "png",
                       dpi = 600)
 ```
