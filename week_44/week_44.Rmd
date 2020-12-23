@@ -1,0 +1,76 @@
+---
+title: "Tidytuesday_generic"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Libraries and settings
+```{r}
+rm(list = ls())
+library(tidytuesdayR)
+library(tidyverse)
+library(pdftools)
+library(extrafont)
+library(ggsci)
+library(grid)
+library(patchwork)
+
+#source("themes.R")
+
+options(scipen = 999)
+theme_set(theme_minimal())
+loadfonts()
+
+dir.create("week_44")
+
+# path <- "C:/r_files/github/mytidytuesday/tidytuesday/week_39"
+# setwd(path)
+```
+
+# Load data
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2020, week = 44)
+
+df.1 <- tuesdata$`wind-turbine`
+
+caption_text <- paste0("Source: ", "Government of Canada")
+```
+
+# Themes
+```{r}
+colors <- paste0("#",c("AF9500", "C9B037", "D7D7D7", "B4B4B4", "6A3805", "AD8A56"))
+
+fonts <- extrafont::fonts()[102]
+```
+
+
+# Manipulation
+```{r}
+df.1 %>% 
+  mutate(year = str_extract(commissioning_date, "\\d{4}"),
+         year = as.integer(year)) %>% 
+  count(manufacturer, year, 
+        total_project_capacity_mw, 
+        turbine_rated_capacity_k_w,
+        sort = T) %>% 
+  filter(manufacturer == "GE") %>%
+  ggplot(aes(x = year, y = turbine_rated_capacity_k_w)) +
+  geom_col(aes(fill =  total_project_capacity_mw, 
+               size = turbine_rated_capacity_k_w))+
+  scale_x_continuous(breaks = seq(2004, 2017, 1))+
+  #scale_y_continuous(limits = c(-300, max(df.1$turbine_rated_capacity_k_w, na.rm = T)))+
+  scale_fill_viridis_c(option = "A")+
+  coord_polar(clip = "off")+
+  theme_minimal()+
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(size = 4),
+        axis.title = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(color = "red", size = 12, margin = margin(t = 1, b = 1),angle =0),
+        axis.ticks.length = unit(2, "cm"),
+        axis.ticks = element_blank())
+```
+

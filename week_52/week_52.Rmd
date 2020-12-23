@@ -44,13 +44,6 @@ df.1 <- tuesdata$`big-mac`
 caption_text <- paste0("Source: ", "TheEconomist | #TidyTuesdayProject")
 ```
 
-# Themes
-```{r}
-colors <- paste0("#",c("AF9500", "C9B037", "D7D7D7", "B4B4B4", "6A3805", "AD8A56"))
-
-fonts <- extrafont::fonts()[102]
-```
-
 # Manipulation
 ```{r}
 df.2 <- df.1 %>%
@@ -63,9 +56,7 @@ df.2 <- df.1 %>%
   ungroup() 
 ```
 
-
 ```{r}
-
 plot <- ggplot(subset(df.2, name != "Brazil"),
        aes(x = year, y = median_country))+
   geom_line(aes(group = name), color = "gray")+
