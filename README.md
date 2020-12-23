@@ -2,6 +2,13 @@
 
 [Following the TidyTuesday Project](https://github.com/rfordatascience/tidytuesday/) 
 
+
+## Week 52
+![](https://github.com/ronycoelho/tidytuesday/blob/master/week_52/plotweek_52.png?raw=true)
+
+## Week 43
+![](https://github.com/ronycoelho/tidytuesday/blob/master/week_43/week_43.png?raw=true)
+
 ## Week 41 
 ![](https://github.com/ronycoelho/tidytuesday/blob/master/week_41/plot_week_37.png?raw=true)
 
